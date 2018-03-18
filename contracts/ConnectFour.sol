@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.19;
 
 contract ConnectFour {
 
@@ -71,7 +71,7 @@ contract ConnectFour {
 
         require(madeMove);
 
-        emit Move(gameStatus.nextTurn, column, frow);
+        Move(gameStatus.nextTurn, column, frow);
 
         if (gameStatus.nextTurn == Piece.RED) {
             gameStatus.nextTurn = Piece.YELLOW;
@@ -128,6 +128,6 @@ contract ConnectFour {
 
         gameStatus.endGame = true;
         gameStatus.winner = winner;
-        emit End(winner);
+        End(winner);
     }
 }
