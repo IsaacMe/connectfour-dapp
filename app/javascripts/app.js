@@ -1,6 +1,7 @@
 // Import the page's CSS. Webpack will know what to do with it.
 require('bootstrap/dist/css/bootstrap.css');
 import "../stylesheets/app.css";
+import * as utils from "./utils";
 
 // Import libraries we need.
 import { default as Web3 } from 'web3';
@@ -10,38 +11,63 @@ import { default as contract } from 'truffle-contract'
 import connect4_artifacts from '../../build/contracts/ConnectFour.json'
 
 // MetaCoin is our usable abstraction, which we'll use through the code below.
-let MetaCoin = contract(connect4_artifacts);
+let Connect4 = contract(connect4_artifacts);
+let Connect4Deployed = undefined;
 
 // The following code is simple to show off interacting with your contracts.
 // As your needs grow you will likely need to change its form and structure.
 // For application bootstrapping, check out window.addEventListener below.
-var accounts;
-var account;
+let accounts;
+let account;
 
 window.App = {
   start: function() {
-    var self = this;
+    let self = this;
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
+    Connect4.setProvider(web3.currentProvider);
 
     // Get the initial account balance so it can be displayed.
     web3.eth.getAccounts(function(err, accs) {
       if (err != null) {
-        alert("There was an error fetching your accounts.");
+        utils.showError("There was an error fetching your accounts.");
         return;
       }
 
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+      if (accs.length === 0) {
+        utils.showError("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
         return;
       }
 
       accounts = accs;
       account = accounts[0];
 
-      self.refreshBalance();
+      $('#p1addr').val(accs);
+      utils.showWelcome();
     });
+  },
+
+  create: function() {
+    utils.loading();
+    const player1 = {name: $('#p1name').val(), address: $('#p1addr').val()};
+    const player2 = {name: $('#p2name').val(), address: $('#p2addr').val()};
+
+    Connect4.new([player1.name, player1.address, player2.name, player2.address], {from: account}).then((instance) => {
+        Connect4Deployed = instance;
+        utils.showGame();
+    }).catch((e) => {
+      utils.showInputError(e.message);
+    });
+  },
+
+  getAt: function() {
+    utils.loading();
+    const address = $('#contractaddr').val();
+    Connect4.at(address).then((instance) => {
+      Connect4Deployed = instance;
+      utils.showGame();
+    }).catch((e) => {
+      utils.showInputError(e.message);
+    })
   },
 
   setStatus: function(message) {
@@ -87,17 +113,21 @@ window.App = {
   }
 };
 
-window.addEventListener('load', function() {
-  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+$(document).ready(() => {
+
   if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
     // Use Mist/MetaMask's provider
     window.web3 = new Web3(web3.currentProvider);
+    App.start();
   } else {
-    console.warn("No web3 detected. Falling back to http://127.0.0.1:9545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:9545"));
+    utils.showError("No Metamask or other web3 provider found!");
   }
 
-  App.start();
+  $("#btn-create").click(() => {
+    App.create();
+  });
+
+  $("#btn-resume").click(() => {
+    App.resume();
+  });
 });
