@@ -1,52 +1,23 @@
-body {
-  margin-left: 25%;
-  margin-right: 25%;
-  margin-top: 10%;
-  font-family: "Open Sans", sans-serif;
+.c4-header h1 {
+  font-weight: 300;
 }
 
-label {
-  display: inline-block;
-  width: 100px;
+.board {
+  align-content: center;
 }
 
-input {
-  width: 500px;
-  padding: 5px;
-  font-size: 16px;
+.board button {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  border: 0;
+  background: #6c757d;
 }
 
-button {
-  font-size: 16px;
-  padding: 5px;
+.board button.red {
+  background: #dc3545;
 }
 
-h1, h2 {
-  display: inline-block;
-  vertical-align: middle;
-  margin-top: 0px;
-  margin-bottom: 10px;
-}
-
-h2 {
-  color: #AAA;
-  font-size: 32px;
-}
-
-h3 {
-  font-weight: normal;
-  color: #AAA;
-  font-size: 24px;
-}
-
-.black {
-  color: black;
-}
-
-#balance {
-  color: black;
-}
-
-.hint {
-  color: #666;
+.board button.yellow {
+  background: #ffc107;
 }
