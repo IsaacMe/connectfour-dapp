@@ -31,6 +31,20 @@ export function showWelcome() {
   $('#welcome').removeClass('d-none');
 }
 
+export function renderPlayer(player, me) {
+  let mestr = "";
+  if (me) {
+    mestr = " (me)";
+  }
+  if (player === 0) {
+    $('#current-player').text("Red" + mestr);
+  } else if (player === 2) {
+    $('#current-player').text("Yellow" + mestr);
+  } else {
+    $('#current-player').text("Nobody");
+  }
+}
+
 export function renderBoard(board) {
   for (let col = 0; col < board.length; col++) {
     for (let row = 0; row < board[col].length; row++) {

@@ -130,4 +130,16 @@ contract ConnectFour {
         gameStatus.winner = winner;
         End(winner);
     }
+
+    function getBoard() public view returns (Piece[6][7]) {
+        return gameStatus.board;
+    }
+
+    function getCurrentPlayerAddress() public view returns(address) {
+        if (gameStatus.nextTurn == Piece.RED) {
+            return playerRed.addr;
+        } else {
+            return playerYellow.addr;
+        }
+    }
 }

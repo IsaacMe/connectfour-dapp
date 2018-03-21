@@ -2,6 +2,7 @@
 require('bootstrap/dist/css/bootstrap.css');
 import "../stylesheets/app.css";
 import * as utils from "./utils";
+import Connect4 from "./game"
 
 // Import libraries we need.
 import { default as Web3 } from 'web3';
@@ -10,8 +11,8 @@ import { default as contract } from 'truffle-contract'
 // Import our contract artifacts and turn them into usable abstractions.
 import connect4_artifacts from '../../build/contracts/ConnectFour.json'
 
-// MetaCoin is our usable abstraction, which we'll use through the code below.
-let Connect4 = contract(connect4_artifacts);
+// Connect4 Contract
+let Connect4Contract = contract(connect4_artifacts);
 let Connect4Deployed = undefined;
 
 // The following code is simple to show off interacting with your contracts.
@@ -19,15 +20,16 @@ let Connect4Deployed = undefined;
 // For application bootstrapping, check out window.addEventListener below.
 let accounts;
 let account;
+let game;
 
 window.App = {
   start: function() {
     let self = this;
 
-    Connect4.setProvider(web3.currentProvider);
+    Connect4Contract.setProvider(web3.currentProvider);
 
     // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
+    window.web3.eth.getAccounts(function(err, accs) {
       if (err != null) {
         utils.showError("There was an error fetching your accounts.");
         return;
@@ -51,23 +53,59 @@ window.App = {
     const player1 = {name: $('#p1name').val(), address: $('#p1addr').val()};
     const player2 = {name: $('#p2name').val(), address: $('#p2addr').val()};
 
-    Connect4.new([player1.name, player1.address, player2.name, player2.address], {from: account}).then((instance) => {
+    Connect4Contract.new(player1.name, player1.address, player2.name, player2.address, {from: account, gas: 1400000}).then((instance) => {
         Connect4Deployed = instance;
-        utils.showGame();
+        App.startGame();
     }).catch((e) => {
       utils.showInputError(e.message);
     });
   },
 
-  getAt: function() {
+  resume: function() {
     utils.loading();
     const address = $('#contractaddr').val();
-    Connect4.at(address).then((instance) => {
-      Connect4Deployed = instance;
-      utils.showGame();
-    }).catch((e) => {
+    try {
+      Connect4Contract.at(address).then((instance) => {
+        Connect4Deployed = instance;
+        App.startGame();
+      }).catch((e) => {
+        utils.showInputError(e.message);
+      })
+    } catch (e) {
       utils.showInputError(e.message);
-    })
+    }
+  },
+
+  startGame: function() {
+    game = new Connect4();
+    Connect4Deployed.getBoard.call().then((boardChain) => {
+      game.board = App.convertBoardChainToBoard(boardChain);
+      utils.renderBoard(game.board);
+      utils.renderPlayer(game.getCurrentPlayer(), false);
+      utils.showGame();
+    });
+
+    Connect4Deployed.Move().watch((err, res) => {
+      if (err) console.error(err);
+
+      game.makeMove(res.args.column.toNumber(), res.args.player.toNumber());
+      utils.renderBoard(game.board);
+      utils.renderPlayer(game.getCurrentPlayer(), false);
+    });
+
+  },
+
+  makeMove: function(col) {
+    Connect4Deployed.makeMove(col, {from: account, gas: 140000}).then((result) => {
+      console.log("Made move");
+    }).catch((err) => {
+      console.log("Move failed");
+      console.log(err);
+    });
+  },
+
+  convertBoardChainToBoard: function (boardChain) {
+    return boardChain.map(col => col.map(e => e.toNumber()));
   },
 
   setStatus: function(message) {
@@ -130,4 +168,9 @@ $(document).ready(() => {
   $("#btn-resume").click(() => {
     App.resume();
   });
+
+  $("#game-board :button").click((event) => {
+    const pos = event.target.id.split("-");
+    App.makeMove(parseInt(pos[1]));
+  })
 });
