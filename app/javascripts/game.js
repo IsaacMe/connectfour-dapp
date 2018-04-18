@@ -34,6 +34,50 @@ export default class Connect4 {
 
   }
 
+  checkForWin() {
+    // Horizontal -
+    for (let row = 0; row < this.size.rows; row++) {
+      for (let col = 0; col < (this.size.cols - 3); col++)
+        if (this.board[col][row] !== this.players.NONE && this.board[col][row] === this.board[col + 1][row]
+          && this.board[col + 1][row] === this.board[col + 2][row]
+          && this.board[col + 2][row] === this.board[col + 3][row]) {
+          return [[col, row], [col + 1, row], [col + 2, row], [col + 3, row]]
+        }
+    }
+
+    // Vertical |
+    for (let col = 0; col < this.size.cols; col++) {
+      for (let row = 0; row < (this.size.rows - 3); row++)
+        if (this.board[col][row] !== this.players.NONE && this.board[col][row] === this.board[col][row + 1]
+          && this.board[col][row + 1] === this.board[col][row + 2]
+          && this.board[col][row + 2] === this.board[col][row + 3]) {
+          return [[col, row], [col, row + 1], [col, row + 2], [col, row + 3]]
+        }
+    }
+
+    // Diagonal /
+    for (let row = 0; row < (this.size.rows - 3); row++) {
+      for (let col = 0; col < (this.size.cols - 3); col++)
+        if (this.board[col][row] !== this.players.NONE && this.board[col][row] === this.board[col + 1][row + 1]
+          && this.board[col + 1][row + 1] === this.board[col + 2][row + 2]
+          && this.board[col + 2][row + 2] === this.board[col + 3][row + 3]) {
+          return [[col, row], [col + 1, row + 1], [col + 2, row + 2], [col + 3, row + 3]]
+        }
+    }
+
+    // Diagonal \
+    for (let row = this.size.rows; row >= 3; row--) {
+      for (let col = 0; col < (this.size.cols - 3); col++)
+        if (this.board[col][row] !== this.players.NONE && this.board[col][row] === this.board[col + 1][row - 1]
+          && this.board[col + 1][row - 1] === this.board[col + 2][row - 2]
+          && this.board[col + 2][row - 2] === this.board[col + 3][row - 3]) {
+          return [[col, row], [col + 1, row - 1], [col + 2, row - 2], [col + 3, row - 3]]
+        }
+    }
+
+    return undefined;
+  }
+
   getCurrentPlayer() {
     return this.currentPlayer;
   }

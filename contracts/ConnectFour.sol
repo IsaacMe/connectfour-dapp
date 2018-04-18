@@ -131,6 +131,11 @@ contract ConnectFour {
         End(winner);
     }
 
+    function makeMoveAndCheckEnd(uint8 columnMove, uint8[2][4] positionsToCheck) public {
+        makeMove(columnMove);
+        checkEnd(positionsToCheck);
+    }
+
     function getBoard() public view returns (Piece[6][7]) {
         return gameStatus.board;
     }
@@ -141,5 +146,14 @@ contract ConnectFour {
         } else {
             return playerYellow.addr;
         }
+    }
+
+    function getGameIsEnded() public view returns(bool) {
+        return gameStatus.endGame;
+    }
+
+    function getWinner() public view returns(Piece) {
+        require(gameStatus.endGame);
+        return gameStatus.winner;
     }
 }

@@ -31,18 +31,31 @@ export function showWelcome() {
   $('#welcome').removeClass('d-none');
 }
 
+export function renderWinner(player, me) {
+  renderPlayerName(player, me, "#winner");
+}
+
 export function renderPlayer(player, me) {
+  renderPlayerName(player, me, "#current-player");
+}
+
+function renderPlayerName(player, me, div) {
   let mestr = "";
   if (me) {
     mestr = " (me)";
   }
-  if (player === 0) {
-    $('#current-player').text("Red" + mestr);
+  if (player === 1) {
+    $(div).text("Red" + mestr);
   } else if (player === 2) {
-    $('#current-player').text("Yellow" + mestr);
+    $(div).text("Yellow" + mestr);
   } else {
-    $('#current-player').text("Nobody");
+    $(div).text("Nobody");
   }
+}
+
+
+export function renderAddress(addr) {
+  $('#address').text(addr);
 }
 
 export function renderBoard(board) {

@@ -82,6 +82,8 @@ window.App = {
       game.board = App.convertBoardChainToBoard(boardChain);
       utils.renderBoard(game.board);
       utils.renderPlayer(game.getCurrentPlayer(), false);
+      utils.renderAddress(Connect4Deployed.address);
+      App.checkEnd();
       utils.showGame();
     });
 
@@ -91,63 +93,55 @@ window.App = {
       game.makeMove(res.args.column.toNumber(), res.args.player.toNumber());
       utils.renderBoard(game.board);
       utils.renderPlayer(game.getCurrentPlayer(), false);
+      App.checkEnd();
     });
+
+    Connect4Deployed.End().watch((err, res) => {
+      if (err) console.error(err);
+
+      utils.renderPlayer(0, false);
+      utils.renderWinner(res.args.winner.toNumber());
+
+    })
 
   },
 
   makeMove: function(col) {
+
     Connect4Deployed.makeMove(col, {from: account, gas: 140000}).then((result) => {
       console.log("Made move");
     }).catch((err) => {
       console.log("Move failed");
-      console.log(err);
+      console.error(err);
+    });
+  },
+
+  checkEnd: function() {
+    Connect4Deployed.getGameIsEnded.call().then((ended) => {
+      if (!ended) {
+        const positions = game.checkForWin();
+        if (positions) {
+          Connect4Deployed.checkEnd(positions, {from: account, gas: 1400000}).then((result) => {
+            console.log("Check succeeded");
+          }).catch((err) => {
+            console.log("Check failed");
+            console.error(err);
+          })
+        }
+      } else {
+        Connect4Deployed.getWinner.call().then((winner) => {
+          utils.renderWinner(winner.toNumber());
+        }).catch((err) => {
+          console.error(err);
+        });
+      }
+    }).catch((err) => {
+      console.error(err);
     });
   },
 
   convertBoardChainToBoard: function (boardChain) {
     return boardChain.map(col => col.map(e => e.toNumber()));
-  },
-
-  setStatus: function(message) {
-    var status = document.getElementById("status");
-    status.innerHTML = message;
-  },
-
-  refreshBalance: function() {
-    var self = this;
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
-    });
-  },
-
-  sendCoin: function() {
-    var self = this;
-
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
-    });
   }
 };
 
